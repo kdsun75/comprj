@@ -10,7 +10,10 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, googleProvider, db } from '../lib/firebase';
+import { auth, db } from '../firebase/config';
+import { GoogleAuthProvider } from 'firebase/auth';
+
+const googleProvider = new GoogleAuthProvider();
 
 export interface UserProfile {
   uid: string;

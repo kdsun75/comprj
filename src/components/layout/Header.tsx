@@ -4,6 +4,7 @@ import Button from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Link } from 'react-router-dom';
+import ProfileAvatar from '../features/profile/ProfileAvatar';
 
 interface HeaderProps {
   onWriteClick?: () => void;
@@ -166,20 +167,11 @@ const Header: React.FC<HeaderProps> = ({ onWriteClick }) => {
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-2 p-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all duration-200 hover:scale-105 group"
                 >
-                  <div className="relative">
-                    {currentUser.photoURL ? (
-                      <img
-                        src={currentUser.photoURL}
-                        alt="프로필"
-                        className="h-8 w-8 rounded-lg object-cover ring-2 ring-slate-100 dark:ring-slate-700 group-hover:ring-slate-200 dark:group-hover:ring-slate-600 transition-all duration-200"
-                      />
-                    ) : (
-                      <div className="h-8 w-8 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-lg flex items-center justify-center ring-2 ring-slate-100 dark:ring-slate-700 group-hover:ring-slate-200 dark:group-hover:ring-slate-600 transition-all duration-200">
-                        <User className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-                      </div>
-                    )}
-                    <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-emerald-400 dark:bg-emerald-500 rounded-full ring-2 ring-white dark:ring-gray-900"></div>
-                  </div>
+                  <ProfileAvatar 
+                    size="sm" 
+                    showOnlineStatus={true}
+                    className="group-hover:ring-slate-200 dark:group-hover:ring-slate-600 transition-all duration-200"
+                  />
                   <div className="hidden md:flex flex-col items-start">
                     <span className="text-sm font-medium">
                       {currentUser.displayName || '사용자'}
@@ -194,20 +186,10 @@ const Header: React.FC<HeaderProps> = ({ onWriteClick }) => {
                   <div className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 py-2 z-50 animate-scale-in">
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                       <div className="flex items-center space-x-3">
-                        <div className="relative">
-                          {currentUser.photoURL ? (
-                            <img
-                              src={currentUser.photoURL}
-                              alt="프로필"
-                              className="h-10 w-10 rounded-xl object-cover"
-                            />
-                          ) : (
-                            <div className="h-10 w-10 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl flex items-center justify-center">
-                              <User className="h-5 w-5 text-slate-600 dark:text-slate-300" />
-                            </div>
-                          )}
-                          <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-emerald-400 dark:bg-emerald-500 rounded-full ring-2 ring-white dark:ring-gray-800"></div>
-                        </div>
+                        <ProfileAvatar 
+                          size="md" 
+                          showOnlineStatus={true}
+                        />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-gray-900 dark:text-white truncate">{currentUser.displayName}</div>
                           <div className="text-sm text-gray-500 dark:text-gray-400 truncate">{currentUser.email}</div>

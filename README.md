@@ -14,6 +14,14 @@
 - **이미지 업로드**: 드래그&드롭, 클립보드 붙여넣기, Firebase Storage 연동
 - **YouTube 임베딩**: URL 자동 감지 및 비디오 삽입
 - **링크 미리보기**: 메타데이터 자동 추출 및 표시
+- **실시간 댓글 시스템**: Firestore 서브컬렉션 기반 실시간 댓글
+- **좋아요 기능**: 게시글 및 댓글 좋아요/취소 시스템
+
+### 👤 프로필 관리
+- **프로필 이미지 업로드**: Firebase Storage 기반 이미지 업로드
+- **실시간 프로필 동기화**: 프로필 변경 시 즉시 UI 반영
+- **구글 프로필 보호**: 구글 로그인 사용자의 기존 프로필 이미지 유지
+- **이미지 최적화**: 파일 크기 제한 및 형식 검증
 
 ### 🔍 고급 필터링 & 검색
 - **카테고리 시스템**: AI, 머신러닝, 딥러닝, NLP, Computer Vision, 기타
@@ -65,7 +73,8 @@ myproject25/
 │   │   ├── ui/         # 기본 UI 컴포넌트
 │   │   ├── CreatePost.tsx      # 게시글 작성
 │   │   ├── TipTapEditor.tsx    # 리치 텍스트 에디터
-│   │   └── LinkPreview.tsx     # 링크 미리보기
+│   │   ├── LinkPreview.tsx     # 링크 미리보기
+│   │   └── AdminDeleteButton.tsx # 관리자 삭제 버튼
 │   ├── contexts/       # React Context (Auth, Post, Theme)
 │   ├── firebase/       # Firebase 설정
 │   ├── hooks/          # 커스텀 훅
@@ -93,23 +102,19 @@ npm install
 
 #### Firebase 설정을 위한 환경 변수 생성:
 
-1. **루트 디렉터리에 `.env` 파일 생성**
-2. **다음 환경 변수들을 추가** (실제 Firebase 프로젝트 값으로 대체):
-
 ```bash
-# Firebase Configuration
-REACT_APP_FIREBASE_API_KEY=your_actual_api_key_here
-REACT_APP_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
-REACT_APP_FIREBASE_PROJECT_ID=your_actual_project_id
-REACT_APP_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_actual_sender_id
-REACT_APP_FIREBASE_APP_ID=your_actual_app_id
+# 1. .env.example 파일을 .env로 복사
+cp .env.example .env
+
+# 2. .env 파일을 열고 실제 Firebase 설정값으로 교체
+# Firebase 콘솔 > 프로젝트 설정 > 일반 탭에서 확인 가능
 ```
 
 #### ⚠️ 보안 주의사항:
 - **절대로 실제 API 키를 GitHub에 커밋하지 마세요**
 - `.env` 파일은 `.gitignore`에 포함되어 있어 Git에서 제외됩니다
-- Firebase 콘솔에서 실제 설정 값을 복사하여 사용하세요
+- `.env.example` 파일에는 예시 값만 포함되어 있습니다
+- Firebase 콘솔에서 실제 설정 값을 복사하여 `.env` 파일에 넣으세요
 - 팀원들과는 안전한 방법으로 환경 변수를 공유하세요
 
 ### 4. Firebase 프로젝트 설정
@@ -170,16 +175,38 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null && 
         request.auth.uid == resource.data.authorId;
+      
+      // 댓글 서브컬렉션
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null && 
+          request.auth.uid == resource.data.authorId;
+      }
+    }
+  }
+}
+
+// Storage Rules (프로필 이미지)
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /profile-images/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        request.auth.uid == userId &&
+        request.resource.size < 10 * 1024 * 1024; // 10MB 제한
     }
   }
 }
 ```
 
 ### GitHub에 업로드하기 전 체크리스트
-- [ ] `.env` 파일이 `.gitignore`에 포함되어 있는지 확인
-- [ ] 코드에 하드코딩된 API 키가 없는지 확인
-- [ ] 실제 Firebase 설정이 환경 변수로 분리되어 있는지 확인
-- [ ] `.env.example` 파일로 팀원들을 위한 템플릿 제공
+- [x] `.env` 파일이 `.gitignore`에 포함되어 있는지 확인
+- [x] 코드에 하드코딩된 API 키가 없는지 확인
+- [x] 실제 Firebase 설정이 환경 변수로 분리되어 있는지 확인
+- [x] `.env.example` 파일로 팀원들을 위한 템플릿 제공
+- [x] `docs/firebaseid.md`에서 실제 API 키 제거 완료
 
 ## 🗄️ 데이터베이스 구조
 
@@ -199,7 +226,17 @@ posts/                 # 게시글
 ├── category           # 카테고리 (ai/ml/deep/nlp/cv/other)
 ├── tags[]             # 태그 배열
 ├── likeCount          # 좋아요 수
+├── likedBy[]          # 좋아요 누른 사용자 ID 배열
 ├── commentCount       # 댓글 수
+├── createdAt          # 작성일
+└── comments/          # 댓글 서브컬렉션
+    ├── content        # 댓글 내용
+    ├── authorId       # 댓글 작성자 ID
+    ├── authorName     # 댓글 작성자 이름
+    ├── authorPhotoURL # 댓글 작성자 프로필 이미지
+    ├── likeCount      # 댓글 좋아요 수
+    ├── likedBy[]      # 댓글 좋아요 누른 사용자 배열
+    └── createdAt      # 댓글 작성일
 ├── linkPreview        # 링크 미리보기 정보
 └── createdAt          # 작성일
 ```

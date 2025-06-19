@@ -5,6 +5,7 @@ import { db } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
 import { deletePost } from '../services/postService';
 import { Trash2, Edit } from 'lucide-react';
+import CommentSection from '../components/features/posts/CommentSection';
 
 interface PostDetail {
   id: string;
@@ -112,6 +113,9 @@ const PostDetailPage: React.FC = () => {
           <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs">#{tag}</span>
         ))}
       </div>
+      
+      {/* 댓글 섹션 */}
+      <CommentSection postId={post.id} />
     </div>
   );
 };

@@ -3,7 +3,7 @@
 ## 🔧 현재 프로젝트 설정
 
 ### Firebase 프로젝트 정보
-- **프로젝트 ID**: `comtyprj`
+- **프로젝트 ID**: `your_project_id`
 - **프로젝트 이름**: AI 커뮤니티 플랫폼
 - **데이터베이스 리전**: `asia-southeast1` (싱가포르)
 
@@ -44,20 +44,23 @@ export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 ```
 
-### 실제 설정 값 (.env 파일 - Git에서 제외됨)
+### 환경 변수 설정 (.env 파일)
 
 ```bash
-# 실제 프로젝트에서 사용할 값들 (보안상 GitHub에 공개하지 않음)
-REACT_APP_FIREBASE_API_KEY=AIzaSyD516_BhJtCmAHcbXdr6XUiPTX0-l-LjTk
-REACT_APP_FIREBASE_AUTH_DOMAIN=comtyprj.firebaseapp.com
-REACT_APP_FIREBASE_PROJECT_ID=comtyprj
-REACT_APP_FIREBASE_STORAGE_BUCKET=comtyprj.firebasestorage.app
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=773531835919
-REACT_APP_FIREBASE_APP_ID=1:773531835919:web:2e7c677b968e01d2134d7a
+# .env 파일에 실제 Firebase 프로젝트 설정값을 저장하세요
+# 아래는 예시 형태입니다. 실제 값은 Firebase 콘솔에서 확인하세요.
+REACT_APP_FIREBASE_API_KEY=your_firebase_api_key_here
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=123456789012
+REACT_APP_FIREBASE_APP_ID=1:123456789012:web:abcdef1234567890
 
 # 선택적: Realtime Database URL (채팅 기능용)
-REACT_APP_FIREBASE_DATABASE_URL=https://comtyprj-default-rtdb.asia-southeast1.firebasedatabase.app
+REACT_APP_FIREBASE_DATABASE_URL=https://your_project_id-default-rtdb.region.firebasedatabase.app
 ```
+
+> ⚠️ **보안 중요**: 실제 Firebase 설정값은 `.env` 파일에 저장하고, 절대 GitHub에 커밋하지 마세요!
 
 ## 🛡️ 보안 가이드
 
@@ -115,11 +118,10 @@ service firebase.storage {
 
 ### 3. API 키 보안 수준
 
-#### 현재 API 키 제한 설정 (권장)
+#### API 키 제한 설정 (권장)
 ```
-API 키: AIzaSyD516_BhJtCmAHcbXdr6XUiPTX0-l-LjTk
-제한 사항:
-✅ HTTP 리퍼러 제한 (localhost:*, 도메인명)
+API 키 제한 사항:
+✅ HTTP 리퍼러 제한 (localhost:*, 배포 도메인)
 ✅ API 제한 (필요한 Firebase API만 활성화)
 ⚠️ IP 주소 제한 (선택적)
 ```
@@ -144,7 +146,7 @@ API 키: AIzaSyD516_BhJtCmAHcbXdr6XUiPTX0-l-LjTk
 - [x] `.env` 파일이 Git에서 제외되는지 확인
 - [x] 실제 API 키가 코드에 없는지 확인
 - [x] 환경 변수 기반 설정 완료
-- [ ] `.env.example` 파일 생성 (팀원용 템플릿)
+- [x] `.env.example` 파일 생성 (팀원용 템플릿)
 
 ## 🚨 보안 주의사항
 
@@ -172,8 +174,32 @@ API 키: AIzaSyD516_BhJtCmAHcbXdr6XUiPTX0-l-LjTk
 - [ ] 모니터링 및 로깅 설정
 - [ ] 보안 감사 자동화
 
+## 🚀 프로젝트 설정 가이드
+
+### 1. 환경 변수 설정
+```bash
+# 1. .env.example 파일을 .env로 복사
+cp .env.example .env
+
+# 2. .env 파일을 열고 실제 Firebase 설정값으로 교체
+# Firebase 콘솔 > 프로젝트 설정 > 일반 탭에서 확인 가능
+```
+
+### 2. Firebase 콘솔 설정
+1. Firebase 콘솔에서 새 프로젝트 생성
+2. Authentication > 로그인 방법에서 Google, Email/Password 활성화
+3. Firestore Database > 데이터베이스 만들기
+4. Storage > 시작하기
+5. 보안 규칙 적용 (문서 참고)
+
+### 3. 개발 서버 실행
+```bash
+npm install
+npm start
+```
+
 ---
 
 **설정 완료일**: 2024년 1월 15일  
-**보안 상태**: ✅ 환경 변수 분리 완료, 🚧 보안 규칙 적용 필요  
+**보안 상태**: ✅ 환경 변수 분리 완료, ✅ GitHub 안전 업로드 준비 완료  
 **다음 단계**: Firebase 보안 규칙 적용 및 API 키 제한 설정

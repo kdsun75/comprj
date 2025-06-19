@@ -106,6 +106,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated, onCancel }) => {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         likeCount: 0,
+        likedBy: [],
         bookmarkCount: 0,
         commentCount: 0
       };

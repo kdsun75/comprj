@@ -4,6 +4,7 @@ import { Heart, MessageCircle, Bookmark, Share2, Eye, Calendar, User, Tag, Trend
 import { useAuth } from '../../../contexts/AuthContext';
 import { deletePost } from '../../../services/postService';
 import { usePost } from '../../../contexts/PostContext';
+import { commentService } from '../../../services/commentService';
 
 interface PostCardProps {
   post: {
@@ -24,11 +25,11 @@ interface PostCardProps {
 }
 
 const PostCard: React.FC<PostCardProps> = ({ post }) => {
-  const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [commentCount, setCommentCount] = useState(post.comments || 0);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { currentUser } = useAuth();
@@ -36,6 +37,17 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const navigate = useNavigate();
 
   const isAuthor = currentUser && currentUser.uid === post.authorId;
+
+  // 댓글 수 실시간 구독
+  useEffect(() => {
+    const unsubscribe = commentService.subscribeToCommentCount(post.id, (count) => {
+      setCommentCount(count);
+    });
+
+    return () => unsubscribe();
+  }, [post.id]);
+
+
 
   // 메뉴 외부 클릭 시 닫기
   useEffect(() => {
@@ -78,9 +90,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     }
   };
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-  };
+
 
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
@@ -269,21 +279,14 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         {/* 액션 버튼 */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <div className="flex items-center space-x-1">
-            <button
-              onClick={handleLike}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-200 hover:scale-105 ${
-                isLiked
-                  ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                  : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
-              }`}
-            >
-              <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''} transition-all duration-200`} />
-              <span className="text-sm font-medium">{post.likes + (isLiked ? 1 : 0)}</span>
-            </button>
+            {/* 홈화면에서는 좋아요 버튼을 숨김 */}
 
-            <button className="flex items-center space-x-2 px-3 py-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:scale-105">
+            <button 
+              onClick={() => navigate(`/post/${post.id}`)}
+              className="flex items-center space-x-2 px-3 py-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:scale-105"
+            >
               <MessageCircle className="h-4 w-4" />
-              <span className="text-sm font-medium">{post.comments}</span>
+              <span className="text-sm font-medium">{commentCount}</span>
             </button>
 
             <button className="flex items-center space-x-2 px-3 py-2 text-gray-500 hover:text-green-500 hover:bg-green-50 rounded-xl transition-all duration-200 hover:scale-105">

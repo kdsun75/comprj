@@ -117,7 +117,7 @@ const HomePage: React.FC = () => {
             }
           }
 
-          return {
+          const postData = {
             id: doc.id,
             title: data.title || '',
             content: data.content || '',
@@ -130,6 +130,17 @@ const HomePage: React.FC = () => {
             tags: data.tags || [],
             imageUrl: data.imageUrl
           };
+          
+          // 디버깅을 위한 로그 (댓글 수만 확인)
+          if (data.commentCount !== undefined) {
+            console.log('게시글 댓글 수:', {
+              docId: doc.id,
+              title: data.title,
+              commentCount: data.commentCount
+            });
+          }
+          
+          return postData;
         })
       );
        

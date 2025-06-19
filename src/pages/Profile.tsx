@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import ProfileImageUpload from '../components/features/profile/ProfileImageUpload';
 // import { User } from 'firebase/auth';
 
 interface UserProfile {
@@ -10,6 +11,7 @@ interface UserProfile {
   bio: string;
   location: string;
   website: string;
+  photoURL?: string;
   createdAt: Date;
 }
 
@@ -19,6 +21,7 @@ const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPhotoURL, setCurrentPhotoURL] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -36,12 +39,16 @@ const Profile: React.FC = () => {
         if (userDoc.exists()) {
           const userData = userDoc.data() as UserProfile;
           setProfile(userData);
+          setCurrentPhotoURL(userData.photoURL || user.photoURL || null);
           setFormData({
             displayName: userData.displayName || '',
             bio: userData.bio || '',
             location: userData.location || '',
             website: userData.website || ''
           });
+        } else {
+          // Firestore 문서가 없는 경우 현재 유저의 photoURL 사용
+          setCurrentPhotoURL(user.photoURL || null);
         }
       } catch (err) {
         setError('프로필을 불러오는데 실패했습니다.');
@@ -53,6 +60,14 @@ const Profile: React.FC = () => {
 
     fetchProfile();
   }, [user]);
+
+  const handleImageUpdate = (photoURL: string | null) => {
+    setCurrentPhotoURL(photoURL);
+    // 프로필 상태도 업데이트
+    if (profile) {
+      setProfile({ ...profile, photoURL: photoURL || undefined });
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -91,15 +106,24 @@ const Profile: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">프로필</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">프로필</h1>
           <button
             onClick={() => setIsEditing(!isEditing)}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
           >
             {isEditing ? '취소' : '수정'}
           </button>
+        </div>
+
+        {/* 프로필 이미지 섹션 */}
+        <div className="flex flex-col items-center mb-8">
+          <ProfileImageUpload
+            currentPhotoURL={currentPhotoURL || undefined}
+            onImageUpdate={handleImageUpdate}
+            size="lg"
+          />
         </div>
 
         {isEditing ? (
