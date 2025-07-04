@@ -3,6 +3,7 @@ import { MessageCircle, Send, Trash2, Edit3, X, Check, Heart } from 'lucide-reac
 import { useAuth } from '../../../contexts/AuthContext';
 import { commentService, Comment } from '../../../services/commentService';
 import Button from '../../ui/Button';
+import UserMenu from '../chat/UserMenu';
 
 interface CommentSectionProps {
   postId: string;
@@ -16,6 +17,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sortType, setSortType] = useState<'popular' | 'newest'>('popular');
+  const [openUserMenus, setOpenUserMenus] = useState<{ [commentId: string]: boolean }>({});
   const { currentUser } = useAuth();
 
   useEffect(() => {
@@ -254,9 +256,23 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
                   )}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-gray-900 dark:text-gray-100">
-                        {comment.authorName}
-                      </span>
+                      <UserMenu
+                        userId={comment.authorId}
+                        userName={comment.authorName}
+                        userPhotoURL={comment.authorPhotoURL}
+                        isOpen={openUserMenus[comment.id] || false}
+                        onClose={() => setOpenUserMenus(prev => ({ ...prev, [comment.id]: false }))}
+                      >
+                        <span 
+                          className="font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenUserMenus(prev => ({ ...prev, [comment.id]: !prev[comment.id] }));
+                          }}
+                        >
+                          {comment.authorName}
+                        </span>
+                      </UserMenu>
                       <span className="text-sm text-gray-500 dark:text-gray-400">
                         {formatDate(comment.createdAt)}
                       </span>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Bell, User, X, LogOut, ChevronDown, Moon, Sun } from 'lucide-react';
+import { Search, Bell, User, X, LogOut, ChevronDown, Moon, Sun, MessageCircle } from 'lucide-react';
 import Button from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useChatContext } from '../../contexts/ChatContext';
 import { Link } from 'react-router-dom';
 import ProfileAvatar from '../features/profile/ProfileAvatar';
+import ChatDropdown from '../features/chat/ChatDropdown';
 
 interface HeaderProps {
   onWriteClick?: () => void;
@@ -13,9 +15,12 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onWriteClick }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isChatDropdownOpen, setIsChatDropdownOpen] = useState(false);
   const { currentUser, signOut } = useAuth();
   const { toggleTheme, isDark } = useTheme();
+  const { unreadCount } = useChatContext();
   const menuRef = useRef<HTMLDivElement>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = async () => {
     try {
@@ -30,6 +35,9 @@ const Header: React.FC<HeaderProps> = ({ onWriteClick }) => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
+      }
+      if (chatRef.current && !chatRef.current.contains(event.target as Node)) {
+        setIsChatDropdownOpen(false);
       }
     };
 
@@ -135,6 +143,28 @@ const Header: React.FC<HeaderProps> = ({ onWriteClick }) => {
                 <span className="relative block h-full w-full rounded-full bg-emerald-500"></span>
               </span>
             </button>
+
+            {/* 메시지 */}
+            {currentUser && (
+              <div className="relative" ref={chatRef}>
+                <button 
+                  onClick={() => setIsChatDropdownOpen(!isChatDropdownOpen)}
+                  className="relative p-2.5 text-gray-400 dark:text-gray-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 hover:scale-105 group"
+                >
+                  <MessageCircle className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+                
+                <ChatDropdown 
+                  isOpen={isChatDropdownOpen}
+                  onClose={() => setIsChatDropdownOpen(false)}
+                />
+              </div>
+            )}
 
             {/* 다크모드 토글 */}
             <button

@@ -5,7 +5,10 @@ import { db } from '../firebase/config';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 import { usePost } from '../contexts/PostContext';
+import { useAuth } from '../contexts/AuthContext';
 import { TrendingUp, Zap, Star, Filter, Search, Plus } from 'lucide-react';
+import AdminDatabaseManager from '../components/AdminDatabaseManager';
+import FirebaseTest from '../components/FirebaseTest';
 
 
 interface Post {
@@ -35,6 +38,7 @@ const HomePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
   const [sortBy, setSortBy] = useState('latest');
   const { shouldRefresh, setShouldRefresh } = usePost();
+  const { currentUser } = useAuth();
 
   const categories = [
     { id: 'all', label: '전체', icon: TrendingUp, color: 'text-gray-600' },
@@ -453,7 +457,17 @@ const HomePage: React.FC = () => {
             </button>
           </div>
         )}
+
+        {/* 관리자 도구 (로그인한 사용자에게만 표시) */}
+        {currentUser && (
+          <div className="mt-12 border-t border-gray-200 dark:border-gray-700 pt-8">
+            <AdminDatabaseManager className="max-w-4xl mx-auto" />
+          </div>
+        )}
       </div>
+      
+      {/* Firebase 테스트 컴포넌트 (디버깅용) */}
+      {currentUser && <FirebaseTest />}
     </div>
   );
 };

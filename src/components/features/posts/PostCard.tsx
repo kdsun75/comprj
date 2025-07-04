@@ -5,6 +5,11 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { deletePost } from '../../../services/postService';
 import { usePost } from '../../../contexts/PostContext';
 import { commentService } from '../../../services/commentService';
+import LikeBookmarkButtons from '../../LikeBookmarkButtons';
+import DebugLikeButton from '../../DebugLikeButton';
+import DatabaseDebugInfo from '../../DatabaseDebugInfo';
+import UserMenu from '../chat/UserMenu';
+// Note: LikeBookmarkButtons는 이미 useLikeBookmarkV2를 사용하고 있습니다
 
 interface PostCardProps {
   post: {
@@ -25,9 +30,9 @@ interface PostCardProps {
 }
 
 const PostCard: React.FC<PostCardProps> = ({ post }) => {
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [commentCount, setCommentCount] = useState(post.comments || 0);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -92,9 +97,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
 
 
 
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-  };
+
 
   const handleDelete = async () => {
     const confirmMessage = `정말로 "${post.title || '이 게시물'}"을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`;
@@ -176,9 +179,23 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success-400 rounded-full ring-2 ring-white"></div>
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-gray-900 truncate group-hover:text-primary-600 transition-colors duration-200">
-                {post.author.name}
-              </h4>
+              <UserMenu
+                userId={post.authorId}
+                userName={post.author.name}
+                userPhotoURL={post.author.photoURL}
+                isOpen={isUserMenuOpen}
+                onClose={() => setIsUserMenuOpen(false)}
+              >
+                <h4 
+                  className="font-semibold text-gray-900 truncate group-hover:text-primary-600 transition-colors duration-200 cursor-pointer hover:underline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsUserMenuOpen(!isUserMenuOpen);
+                  }}
+                >
+                  {post.author.name}
+                </h4>
+              </UserMenu>
               <div className="flex items-center text-sm text-gray-500 space-x-2">
                 <Calendar className="h-3 w-3" />
                 <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
@@ -276,10 +293,19 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           </div>
         )}
 
+        {/* 디버그 도구들 (개발용 - 나중에 제거) */}
+        <DatabaseDebugInfo postId={post.id} />
+        <DebugLikeButton postId={post.id} />
+
         {/* 액션 버튼 */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <div className="flex items-center space-x-1">
-            {/* 홈화면에서는 좋아요 버튼을 숨김 */}
+            {/* 좋아요 및 북마크 버튼 */}
+            <LikeBookmarkButtons 
+              postId={post.id} 
+              size="md" 
+              showCounts={true}
+            />
 
             <button 
               onClick={() => navigate(`/post/${post.id}`)}
@@ -296,17 +322,6 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <button
-              onClick={handleBookmark}
-              className={`p-2 rounded-xl transition-all duration-200 hover:scale-105 ${
-                isBookmarked
-                  ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100'
-                  : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-50'
-              }`}
-            >
-              <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''} transition-all duration-200`} />
-            </button>
-
             {/* 인기도 표시 */}
             {post.likes > 10 && (
               <div className="flex items-center space-x-1 px-2 py-1 bg-gradient-to-r from-orange-100 to-red-100 text-orange-600 rounded-lg">

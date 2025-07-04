@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 사용자 컬렉션 
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 게시글 컬렉션 (좋아요 기능 포함)
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        // 작성자는 모든 필드 수정 가능
+        request.auth.uid == resource.data.authorId ||
+        // 로그인한 사용자는 좋아요 관련 필드만 수정 가능
+        (
+          request.auth != null &&
+          // 수정 가능한 필드만 변경되었는지 확인
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy', 'likeCount', 'updatedAt']) &&
+          // likedBy 배열에 자신의 ID만 추가/제거 가능
+          (
+            (request.resource.data.likedBy.toSet().difference(resource.data.likedBy.toSet()) == [request.auth.uid].toSet()) ||
+            (resource.data.likedBy.toSet().difference(request.resource.data.likedBy.toSet()) == [request.auth.uid].toSet())
+          )
+        )
+      );
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.authorId;
+      
+      // 댓글 서브컬렉션
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null && 
+          request.auth.uid == resource.data.authorId;
+      }
+    }
+    
+    // 북마크 컬렉션 - 완전히 열린 규칙 (테스트용)
+    match /bookmarks/{bookmarkId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+} 

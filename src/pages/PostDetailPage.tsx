@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { deletePost } from '../services/postService';
 import { Trash2, Edit } from 'lucide-react';
 import CommentSection from '../components/features/posts/CommentSection';
+import LikeBookmarkButtons from '../components/LikeBookmarkButtons';
 
 interface PostDetail {
   id: string;
@@ -108,6 +109,18 @@ const PostDetailPage: React.FC = () => {
         <img src={post.imageUrl} alt="게시글 이미지" className="mb-4 rounded-lg max-h-96 object-contain" />
       )}
       <div className="prose max-w-none mb-4 dark:prose-invert text-gray-900 dark:text-gray-100" dangerouslySetInnerHTML={{ __html: post.content }} />
+      
+      {/* 좋아요 및 북마크 버튼 */}
+      <div className="mb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+        <LikeBookmarkButtons 
+          postId={post.id} 
+          size="md" 
+          showCounts={true}
+          orientation="horizontal"
+          className="mb-4"
+        />
+      </div>
+      
       <div className="flex flex-wrap gap-2 mt-4">
         {post.tags.map((tag, idx) => (
           <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs">#{tag}</span>
